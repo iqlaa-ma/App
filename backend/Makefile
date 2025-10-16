@@ -262,11 +262,62 @@ status: ## Show status of all services
 
 info: ## Show system information
 	@echo "$(GREEN)System Information:$(NC)"
-	@echo "Docker version: $$(docker --version)"
-	@echo "Docker Compose version: $$(docker-compose --version)"
-	@echo "Python version: $$(python3 --version)"
+	@echo "Docker version: $(docker --version)"
+	@echo "Docker Compose version: $(docker-compose --version)"
+	@echo "Python version: $(python3 --version)"
 	@echo ""
 	@echo "$(GREEN)Project Information:$(NC)"
 	@echo "Container name: $(CONTAINER_NAME)"
 	@echo "Image name: $(IMAGE_NAME)"
 	@echo ""
+
+# ============================================================================
+# Web Testing Interface
+# ============================================================================
+
+open-test-page: ## Open web testing interface in browser
+	@echo "$(GREEN)Opening test page...$(NC)"
+	@if [ ! -f index.html ]; then \
+		echo "$(RED)index.html not found!$(NC)"; \
+		exit 1; \
+	fi; \
+	if command -v google-chrome > /dev/null 2>&1; then \
+		google-chrome index.html 2>/dev/null & \
+	elif command -v chromium-browser > /dev/null 2>&1; then \
+		chromium-browser index.html 2>/dev/null & \
+	elif command -v chromium > /dev/null 2>&1; then \
+		chromium index.html 2>/dev/null & \
+	elif command -v firefox > /dev/null 2>&1; then \
+		firefox index.html 2>/dev/null & \
+	elif command -v open > /dev/null 2>&1; then \
+		open index.html; \
+	elif command -v xdg-open > /dev/null 2>&1; then \
+		xdg-open index.html 2>/dev/null & \
+	elif command -v start > /dev/null 2>&1; then \
+		start index.html; \
+	else \
+		echo "$(YELLOW)Could not detect browser. Opening with Python server instead...$(NC)"; \
+		echo "$(YELLOW)Visit: http://localhost:8080$(NC)"; \
+		$(PYTHON) -m http.server 8080 & \
+		sleep 2; \
+		if command -v xdg-open > /dev/null 2>&1; then \
+			xdg-open http://localhost:8080 2>/dev/null & \
+		fi; \
+	fi
+
+serve-test-page: ## Serve test page with Python HTTP server
+	@echo "$(GREEN)Starting web server...$(NC)"
+	@echo "$(YELLOW)╔════════════════════════════════════════════════════╗$(NC)"
+	@echo "$(YELLOW)║  Test page available at:                           ║$(NC)"
+	@echo "$(YELLOW)║  👉 http://localhost:8080                          ║$(NC)"
+	@echo "$(YELLOW)║                                                    ║$(NC)"
+	@echo "$(YELLOW)║  Open this URL in your browser                     ║$(NC)"
+	@echo "$(YELLOW)║  Press CTRL+C to stop the server                   ║$(NC)"
+	@echo "$(YELLOW)╚════════════════════════════════════════════════════╝$(NC)"
+	@echo ""
+	@$(PYTHON) -m http.server 8080
+
+test-ui: up ## Start API and serve test page
+	@echo "$(GREEN)Starting complete test environment...$(NC)"
+	@sleep 3
+	@$(MAKE) serve-test-page

@@ -5,7 +5,6 @@ from app.auth.routes import router as auth_router
 from app.users.routes import router as users_router
 from app.config import settings
 
-# Initialize FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     description="Production-ready authentication API for mobile apps",
@@ -14,7 +13,6 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS for mobile app access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, specify your mobile app domains
@@ -23,7 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(auth_router)
 app.include_router(users_router)
 
