@@ -474,11 +474,12 @@
                 if (response.ok) {
                     document.getElementById('statusDot').classList.add('connected');
                     document.getElementById('statusText').textContent = 'API Connected ✓';
-                    showAlert('', 'API is healthy and ready!', 'success', 'registerAlert');
+                    console.log('API Health Check:', data);
                 }
             } catch (error) {
                 document.getElementById('statusDot').classList.remove('connected');
                 document.getElementById('statusText').textContent = 'API Disconnected ✗';
+                console.error('API Health Check Failed:', error);
                 showAlert('registerAlert', 'Cannot connect to API. Make sure it\'s running on http://localhost:8000', 'error');
             }
         }

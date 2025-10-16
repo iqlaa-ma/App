@@ -1,22 +1,19 @@
 .PHONY: help build up down restart logs shell test clean generate-key setup install run dev stop ps health
 
-# Default target
 .DEFAULT_GOAL := help
 
-# Variables
 DOCKER_COMPOSE = docker-compose
 DOCKER = docker
 CONTAINER_NAME = fastapi-auth-api
 IMAGE_NAME = fastapi-auth-backend
 PYTHON = python3
 
-# Colors for terminal output
 GREEN = \033[0;32m
 YELLOW = \033[0;33m
 RED = \033[0;31m
-NC = \033[0m # No Color
+NC = \033[0m
 
-help: ## Show this help message
+help:
 	@echo "$(GREEN)FastAPI Authentication Backend - Available Commands$(NC)"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-20s$(NC) %s\n", $$1, $$2}'

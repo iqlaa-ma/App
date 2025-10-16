@@ -15,7 +15,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your mobile app domains
+    allow_origins=["*"],  # This should allow all origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
