@@ -81,9 +81,15 @@ test-local: ## Run tests locally (requires local setup)
 # API Testing Commands
 # ============================================================================
 
+
 health: ## Check API health
 	@echo "$(GREEN)Checking API health...$(NC)"
-	@curl -s http://localhost:8000/health | python3 -m json.tool || echo "$(RED)API not responding$(NC)"
+	@if curl -s http://localhost:8000/health > /dev/null 2>&1; then \
+	    echo "$(GREEN)✓ API is healthy$(NC)"; \
+	    curl -s http://localhost:8000/health | python3 -m json.tool; \
+	else \
+	    echo "$(RED)✗ API not responding$(NC)"; \
+	fi
 
 test-register: ## Test user registration
 	@echo "$(GREEN)Testing user registration...$(NC)"
@@ -133,7 +139,8 @@ generate-key: ## Generate a new SECRET_KEY
 setup: ## Initial setup - creates .env if missing
 	@if [ ! -f .env ]; then \
 		echo "$(YELLOW)Creating .env file...$(NC)"; \
-		echo "DATABASE_URL=sqlite:///./data/app.db" > .env; \
+		echo "MONGODB_URL=mongodb://localhost:27017" > .env; \
+		echo "DATABASE_NAME=auth_db" >> .env; \
 		echo "SECRET_KEY=$$(python3 -c 'import secrets; print(secrets.token_hex(32))')" >> .env; \
 		echo "ALGORITHM=HS256" >> .env; \
 		echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env; \
