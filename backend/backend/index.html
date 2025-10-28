@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAPI Auth Testing Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            max-width: 1000px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .api-status {
+            padding: 15px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .api-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #28a745;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .form-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 40px;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .form-section:last-child {
+            border-right: none;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .user-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .user-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .user-info-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-info-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .user-info-value {
+            color: #333;
+        }
+
+        .token-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .password-requirements {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            line-height: 1.6;
+        }
+
+        .test-section {
+            padding: 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .test-btn {
+            padding: 12px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .test-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .form-section {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+
+            .form-section:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 FastAPI Authentication Tester</h1>
+            <p>Test your authentication backend with real-time feedback</p>
+        </div>
+
+        <div class="api-status">
+            <div class="api-status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Checking API...</span>
+            </div>
+            <button class="test-btn" onclick="checkApiHealth()" style="padding: 8px 16px; min-width: auto;">
+                Refresh Status
+            </button>
+        </div>
+
+        <div class="content">
+            <!-- Registration Section -->
+            <div class="form-section">
+                <h2>📝 Sign Up</h2>
+                <div id="registerAlert" class="alert"></div>
+                
+                <form id="registerForm" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label for="regEmail">Email Address</label>
+                        <input type="email" id="regEmail" required placeholder="john@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regUsername">Username</label>
+                        <input type="text" id="regUsername" required placeholder="johndoe" minlength="3">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regPassword">Password</label>
+                        <input type="password" id="regPassword" required placeholder="Enter strong password">
+                        <div class="password-requirements">
+                            Must contain: 8+ characters, uppercase, lowercase, and digit
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="registerBtn">
+                        Create Account
+                    </button>
+                </form>
+            </div>
+
+            <!-- Login Section -->
+            <div class="form-section">
+                <h2>🔑 Sign In</h2>
+                <div id="loginAlert" class="alert"></div>
+                
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" required placeholder="john@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" required placeholder="Enter your password">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="loginBtn">
+                        Sign In
+                    </button>
+                    
+                    <button type="button" class="btn btn-secondary" onclick="getUserInfo()" id="getUserBtn" disabled>
+                        Get My Profile
+                    </button>
+                </form>
+
+                <div id="userInfo" class="user-info" style="display: none;">
+                    <h3>✅ Logged In Successfully!</h3>
+                    <div class="user-info-item">
+                        <span class="user-info-label">ID:</span>
+                        <span class="user-info-value" id="userId"></span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">Email:</span>
+                        <span class="user-info-value" id="userEmail"></span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">Username:</span>
+                        <span class="user-info-value" id="userUsername"></span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">Status:</span>
+                        <span class="user-info-value" id="userStatus"></span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="user-info-label">Created:</span>
+                        <span class="user-info-value" id="userCreated"></span>
+                    </div>
+                    <div class="token-display">
+                        <strong>JWT Token:</strong><br>
+                        <span id="tokenDisplay"></span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="logout()" style="margin-top: 15px;">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Quick Tests</h2>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="testWeakPassword()">Test Weak Password</button>
+                <button class="test-btn" onclick="testDuplicateEmail()">Test Duplicate Email</button>
+                <button class="test-btn" onclick="testInvalidToken()">Test Invalid Token</button>
+                <button class="test-btn" onclick="viewSwaggerDocs()">View API Docs</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🚀 FastAPI Authentication Backend Testing Interface</p>
+            <p>API URL: <strong id="apiUrlDisplay">http://localhost:8000</strong></p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let currentToken = null;
+
+        // Check API health on load
+        window.onload = () => {
+            checkApiHealth();
+        };
+
+        async function checkApiHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('statusDot').classList.add('connected');
+                    document.getElementById('statusText').textContent = 'API Connected ✓';
+                    console.log('API Health Check:', data);
+                }
+            } catch (error) {
+                document.getElementById('statusDot').classList.remove('connected');
+                document.getElementById('statusText').textContent = 'API Disconnected ✗';
+                console.error('API Health Check Failed:', error);
+                showAlert('registerAlert', 'Cannot connect to API. Make sure it\'s running on http://localhost:8000', 'error');
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('regEmail').value;
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            const btn = document.getElementById('registerBtn');
+            
+            btn.disabled = true;
+            btn.innerHTML = 'Creating Account<span class="loader"></span>';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('registerAlert', `✅ Account created successfully! Welcome, ${data.username}!`, 'success');
+                    document.getElementById('registerForm').reset();
+                    
+                    // Auto-fill login form
+                    document.getElementById('loginEmail').value = email;
+                    document.getElementById('loginPassword').value = password;
+                    
+                    setTimeout(() => {
+                        showAlert('loginAlert', 'Your credentials have been filled. Click "Sign In" to login!', 'info');
+                    }, 500);
+                } else {
+                    showAlert('registerAlert', `❌ Registration failed: ${data.detail}`, 'error');
+                }
+            } catch (error) {
+                showAlert('registerAlert', `❌ Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
+            
+            btn.disabled = true;
+            btn.innerHTML = 'Signing In<span class="loader"></span>';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentToken = data.access_token;
+                    showAlert('loginAlert', '✅ Login successful! Token received.', 'success');
+                    document.getElementById('getUserBtn').disabled = false;
+                    document.getElementById('tokenDisplay').textContent = currentToken;
+                    
+                    // Automatically fetch user info
+                    setTimeout(() => getUserInfo(), 500);
+                } else {
+                    showAlert('loginAlert', `❌ Login failed: ${data.detail}`, 'error');
+                    currentToken = null;
+                }
+            } catch (error) {
+                showAlert('loginAlert', `❌ Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        }
+
+        async function getUserInfo() {
+            if (!currentToken) {
+                showAlert('loginAlert', '⚠️ Please login first!', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/users/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('userId').textContent = data.id;
+                    document.getElementById('userEmail').textContent = data.email;
+                    document.getElementById('userUsername').textContent = data.username;
+                    document.getElementById('userStatus').textContent = data.is_active ? '✅ Active' : '❌ Inactive';
+                    document.getElementById('userCreated').textContent = new Date(data.created_at).toLocaleString();
+                    document.getElementById('userInfo').style.display = 'block';
+                    showAlert('loginAlert', '✅ Profile loaded successfully!', 'success');
+                } else {
+                    showAlert('loginAlert', `❌ Failed to get user info: ${data.detail}`, 'error');
+                }
+            } catch (error) {
+                showAlert('loginAlert', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function logout() {
+            currentToken = null;
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('getUserBtn').disabled = true;
+            document.getElementById('loginForm').reset();
+            showAlert('loginAlert', 'ℹ️ Logged out successfully!', 'info');
+        }
+
+        async function testWeakPassword() {
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'weak@test.com',
+                        username: 'weakuser',
+                        password: 'weak'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.status === 422) {
+                    showAlert('registerAlert', '✅ Test Passed: Weak password correctly rejected!', 'success');
+                } else {
+                    showAlert('registerAlert', '❌ Test Failed: Weak password was accepted!', 'error');
+                }
+            } catch (error) {
+                showAlert('registerAlert', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDuplicateEmail() {
+            const email = document.getElementById('regEmail').value || 'test@test.com';
+            
+            try {
+                // Try to register same email twice
+                await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        email: email,
+                        username: 'user1',
+                        password: 'Test1234!'
+                    })
+                });
+                
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        email: email,
+                        username: 'user2',
+                        password: 'Test1234!'
+                    })
+                });
+                
+                if (response.status === 400) {
+                    showAlert('registerAlert', '✅ Test Passed: Duplicate email correctly rejected!', 'success');
+                } else {
+                    showAlert('registerAlert', '❌ Test Failed: Duplicate email was accepted!', 'error');
+                }
+            } catch (error) {
+                showAlert('registerAlert', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInvalidToken() {
+            try {
+                const response = await fetch(`${API_URL}/users/me`, {
+                    headers: {
+                        'Authorization': 'Bearer invalid_token_12345'
+                    }
+                });
+                
+                if (response.status === 401) {
+                    showAlert('loginAlert', '✅ Test Passed: Invalid token correctly rejected!', 'success');
+                } else {
+                    showAlert('loginAlert', '❌ Test Failed: Invalid token was accepted!', 'error');
+                }
+            } catch (error) {
+                showAlert('loginAlert', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function viewSwaggerDocs() {
+            window.open(`${API_URL}/docs`, '_blank');
+        }
+
+        function showAlert(elementId, message, type) {
+            const alert = document.getElementById(elementId);
+            alert.className = `alert alert-${type} show`;
+            alert.textContent = message;
+            
+            setTimeout(() => {
+                alert.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
